@@ -24,6 +24,6 @@ main:
     MOV pc, lr
 
 .data
-    prompt: .asciz "Guess the random number, enter a max number greater than one to begin: "
+    prompt: .asciz "Guess the random number, enter a max number >= 1 to begin: "
     input: .word 0
     formatString: .asciz "%d"

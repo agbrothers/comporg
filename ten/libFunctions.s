@@ -8,71 +8,118 @@
 
 primes:
 
-	## ARGUMENTS:
-	## r0 ~ int n
-	##
-	## RETURNS: 
-	## None
-	##
-	## FUNCTION:
-	## Loop from 3 to n and print out all primes 
-	##
-	## VARIABLES 
-	## r4 temp storage
-	## r5 ~ r0 >= r1
-	## r6 ~ r1 >= r2
-	## r7 ~ r2 >  r0
+    ## ARGUMENTS:
+    ## r0 ~ int n
+    ##
+    ## RETURNS: 
+    ## None
+    ##
+    ## FUNCTION:
+    ## Loop from 3 to n and print out all primes
+    ##
+    ## VARIABLES 
+    ## r4 ~ int n
+    ## r5 ~ int i/2 + 1
+    ## r6 ~ int outer counter i
+    ## r7 ~ int inner counter j
+    ## r8 ~ bool is_prime
+    ## r9 ~ i mod j
 
-	## PUSH STACK
-	SUB sp, sp, #4
-	STR lr, [sp]
+    ## PUSH STACK
+    SUB sp, sp, #4
+    STR lr, [sp]
 
-	## r0 >= r1
-	MOV r5, #0
-	CMP r0, r1
-	ADDGE r5, r5, #1
+    ## INITIALIZE VARIABLES
+    MOV r4, r0
+    MOV r6, #4
+    MOV r7, #2
+    
+    ## PRINT 3 BY DEFAULT
+    LDR r0, =three
+    BL printf
 
-	## r1 >= r2
-	MOV r6, #0
-	CMP r1, r2
-	ADDGE r6, r6, #1
+    ## OUTER LOOP 
+    ## ------------------->
+    startOuterLoop:
 
-	## r2 > r0
-	MOV r7, #0
-	CMP r2, r0
-	ADDGT r7, r7, #1
+        ## CHECK OUTER LOOP END CONDITION
+        CMP r6, r4
+        BGT endOuterLoop
+
+        ## SET IS_PRIME BOOL
+        MOV r8, #1
+
+	## SET INNER LOOP ITERATION COUNT
+	MOV r0, r6
+	MOV r1, #2
+	BL __aeabi_idiv
+	ADD r5, r0, #1
+
+        ## INNER LOOP
+        ## ------------------->
+        startInnerLoop:
+
+            ## CHECK INNER LOOP END CONDITION
+            CMP r7, r5
+            BGT endInnerLoop
+
+            ## COMPUTE MODULUS OF i (r6) and j (r7)
+	    MOV r0, r6
+	    MOV r1, r7
+	    BL __aeabi_idiv
+	    MUL r10, r0, r7
+	    SUB r9, r6, r10
+
+            ## CHECK IF i IS DIVISIBLE BY j (mod == 0)
+            CMP r9, #0
+            BEQ notPrime
+                B endNotPrime
+            notPrime:
+                MOV r8, #0
+                B endInnerLoop
+            endNotPrime:
+
+            ## NEXT INNER ITERATION
+            ADD r7, r7, #1
+            B startInnerLoop
+
+        ## <-------------------
+        endInnerLoop:
+	    MOV r7, #2
+
+        ## PRINT IF PRIME
+        CMP r8, #1
+        BEQ printPrime
+            B endPrint
+        printPrime:
+            LDR r0, =prime
+            MOV r1, r6
+            BL printf        
+        endPrint:
 
 
-	## CHECK IF r1 IS MAX
-	EOR r4, r5, #1
-	AND r4, r4, r6
-	CMP r4, #1
-	BEQ maxR1
-	    ## False condition
-	    B EndR1
-	maxR1: 
-	    MOV r0, r1
-        EndR1:
+        ## NEXT OUTER ITERATION
+        ADD r6, r6, #1
+        B startOuterLoop
 
-	## CHECK IF r2 IS MAX
-	EOR r4, r6, #1
-	AND r4, r4, r7
-	CMP r4, #1
-	BEQ maxR2
-	    ## False Condition
-	    B EndR2
-	maxR2: 
-	    MOV r0, r2
-	EndR2:
+    ## <-------------------
+    endOuterLoop:
 
-	## POP STACK
-	LDR lr, [sp]
-	ADD sp, sp, #4
-	MOV pc, lr
+    ## ADD NEWLINE TO END
+    LDR r0, =end
+    BL printf
+
+    ## POP STACK AND RETURN
+    LDR lr, [sp]
+    ADD sp, sp, #4
+    MOV pc, lr
 
 .data
-## END primes
+    three:   .asciz "\n3"
+    prime:   .asciz ", %d"
+    end:     .asciz "\n\n"
 
+## END primes
 
 
 ## START FUNCTION guess
@@ -105,10 +152,16 @@ guess:
 
         ## INITIALIZE VARIABLES
 	MOV r4, r0
-        MOV r5, #0
-	MOV r6, r4
+        MOV r5, #1
+
+	## GENERATE RANDOM NUMBER BY TAKING MODULUS OF PROMPT MEM ADDRESS
 	LDR r0, =prompt
-	LDR r1, =current
+	MOV r1, r4
+	BL __aeabi_idiv
+	MUL r0, r0, r4
+	LDR r1, =prompt
+	SUB r6, r1, r0
+	ADD r6, r6, #1
      
 	## LOOP 
 	startGuessLoop:
@@ -163,8 +216,8 @@ guess:
 
 .data
         prompt:  .asciz "\nGuess an int: "
-        lower:   .asciz "\nThe number is lower than %d\n"
-        higher:  .asciz "\nThe number is higher than %d\n"
+        lower:   .asciz "\nThe number is lower than %d"
+        higher:  .asciz "\nThe number is higher than %d"
         success: .asciz "\nCorrect! That took %d guesses\n"
         current: .word 0
 	formatString: .asciz "%d" 
