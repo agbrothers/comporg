@@ -73,9 +73,10 @@ fib:
     ## r5 ~ fib(n-1)
 
     ## PUSH STACK
-    SUB sp, sp, #8
+    SUB sp, sp, #12
     STR lr, [sp]
     STR r4, [sp, #4]
+    STR r5, [sp, #8]
 
     ## INITIALIZE VARIABLES
     MOV r4, r0
@@ -110,7 +111,8 @@ fib:
     ReturnFib:
     LDR lr, [sp]
     LDR r4, [sp, #4]
-    ADD sp, sp, #8
+    LDR r5, [sp, #8]
+    ADD sp, sp, #12
     MOV pc, lr
    
 .data

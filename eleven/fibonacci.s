@@ -19,7 +19,9 @@ main:
     BL fib
 
     ## PRINT fib(n)
-    MOV r1, r0
+    LDR r1, =input
+    LDR r1, [r1]
+    MOV r2, r0
     LDR r0, =output
     BL printf
 
@@ -30,6 +32,6 @@ main:
 
 .data
     prompt: .asciz "Returns the nth fibonacci number, enter n: "
-    output: .asciz " = %d\n"
+    output: .asciz "fib(%d) = %d\n"
     input: .word 0
     formatString: .asciz "%d"
